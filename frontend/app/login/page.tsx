@@ -2,61 +2,26 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useRouter } from 'next/navigation';
-
-
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
-const router = useRouter();
-
+  const { login, isLoading } = useAuth();
   
-const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const { email, password } = formData;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { email, password } = formData;
 
-  if (!email || !password) {
-    return toast.error("Please enter both email and password.");
-  }
-
-  try {
-    const res = await fetch("http://localhost:5555/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-    console.log(data)
-
-    if (res.ok) {
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      toast.success("Login successful!");
-
-      setTimeout(() => {
-        if (data.user.role === 'owner') {
-          router.push('/owner-dashboard');
-        } else {
-          router.push('/');
-        }
-      }, 1500);
-    } else {
-      toast.error(data.message || "Login failed. Please try again.");
+    if (!email || !password) {
+      return;
     }
-  } catch (error) {
-    toast.error("Server error. Please try again later.");
-  }
-};
 
+    await login(email, password);
+  };
 
   return (
     <div className="max-w-md mx-auto">
@@ -80,6 +45,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               placeholder="Enter your email"
+              disabled={isLoading}
               required
             />
           </div>
@@ -94,6 +60,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               placeholder="Enter your password"
+              disabled={isLoading}
               required
             />
           </div>
@@ -115,9 +82,17 @@ const handleSubmit = async (e: React.FormEvent) => {
 
           <button
             type="submit"
-            className="w-full bg-amber-500 text-white py-2 px-4 rounded-md hover:bg-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors"
+            className="w-full bg-amber-500 text-white py-2 px-4 rounded-md hover:bg-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            disabled={isLoading}
           >
-            Sign In
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Signing In...
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>   
 
@@ -132,7 +107,6 @@ const handleSubmit = async (e: React.FormEvent) => {
 
      
       </div>
-        <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }

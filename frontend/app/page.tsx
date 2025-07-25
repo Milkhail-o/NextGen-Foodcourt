@@ -2,8 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const { isLoggedIn, isLoading } = useAuth();
+  const router = useRouter();
   const [restaurants, setRestaurants] = useState([]);
   const [cuisines, setCuisines] = useState([]);
 
@@ -14,6 +18,14 @@ export default function Home() {
       return actualUrl ? decodeURIComponent(actualUrl) : rawUrl;
     } catch {
       return rawUrl;
+    }
+  };
+
+  const handleOrderNowClick = () => {
+    if (isLoggedIn) {
+      router.push('/order');
+    } else {
+      router.push('/login');
     }
   };
 
@@ -59,6 +71,20 @@ export default function Home() {
               Reserve your table in advance and order from your favorite outlets
               while enjoying our comfortable shared seating experience.
             </p>
+            <button
+              onClick={handleOrderNowClick}
+              disabled={isLoading}
+              className="inline-block bg-gradient-to-r from-orange-500 to-red-500 text-white px-12 py-4 rounded-xl text-2xl font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                  Loading...
+                </div>
+              ) : (
+                'Order Now'
+              )}
+            </button>
           </div>
         </div>
       </div>

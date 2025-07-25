@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   ShoppingCart,
   Utensils,
@@ -17,52 +18,14 @@ import {
 
 export default function Header() {
   const pathname = usePathname();
+  const { user, isLoggedIn, isLoading, logout } = useAuth();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
-  const [userType, setUserType] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const [cartCount, setCartCount] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const checkAuthState = () => {
-      const storedUserType = localStorage.getItem('userType');
-      const storedUserName = localStorage.getItem('userName');
-      setUserType(storedUserType);
-      setUserName(storedUserName);
-      setIsLoggedIn(!!storedUserType);
-      setIsOwner(storedUserType === 'admin');
-
-      // Only load cart for customers
-      if (storedUserType === 'customer') {
-        const savedCart = localStorage.getItem('foodCourtCart');
-        if (savedCart) {
-          const cart = JSON.parse(savedCart);
-          const totalItems = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
-          setCartCount(totalItems);
-        }
-      }
-
-      const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-      setDarkMode(savedDarkMode);
-      if (savedDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-
-    checkAuthState();
-
-    const handleAuthChange = () => checkAuthState();
-    window.addEventListener('authChange', handleAuthChange);
-
-    return () => {
-      window.removeEventListener('authChange', handleAuthChange);
-    };
-  }, [pathname]);
+  const isOwner = user?.role === 'owner';
+  const userName = user?.name || user?.email;
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -75,18 +38,9 @@ export default function Header() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('userType');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('foodCourtCart');
-    setIsLoggedIn(false);
-    setIsOwner(false);
-    setUserType(null);
-    setUserName(null);
-    setCartCount(0);
+  const handleLogout = async () => {
     setMobileMenuOpen(false);
-    window.dispatchEvent(new Event('authChange'));
-    window.location.href = '/';
+    await logout();
   };
 
   const ownerNavItems = [
@@ -113,6 +67,27 @@ export default function Header() {
   const isOwnerDashboardPage = pathname.startsWith('/owner-dashboard');
   const shouldShowOwnerNav = isOwner && isOwnerDashboardPage;
   const shouldShowCustomerNav = !isOwnerDashboardPage;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <nav className="bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 p-2 rounded-full">
+                <Utensils className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                NextGen FoodCourt
+              </span>
+            </Link>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
