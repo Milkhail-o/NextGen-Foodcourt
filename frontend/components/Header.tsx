@@ -13,7 +13,8 @@ import {
   ClipboardList,
   LogOut,
   Menu,
-  X
+  X,
+  User
 } from 'lucide-react';
 
 export default function Header() {
@@ -25,7 +26,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isOwner = user?.role === 'owner';
-  const userName = user?.name || user?.email;
+  const userName = user?.name || user?.email?.split('@')[0] || 'User';
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -53,12 +54,7 @@ export default function Header() {
     { href: '/', label: 'Home' },
     { href: '/order', label: 'Order' },
     { href: '/reservations', label: 'Reservations' },
-    ...(isLoggedIn
-      ? [
-          { href: '#', label: `Hi, ${userName}`, isUserGreeting: true },
-          { href: '/checkout', label: 'Checkout' }
-        ]
-      : [{ href: '/login', label: 'Login' }])
+    { href: '/checkout', label: 'Checkout' }
   ];
 
   const navItems = isOwner ? ownerNavItems : customerNavItems;
@@ -106,26 +102,43 @@ export default function Header() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {(shouldShowOwnerNav ? ownerNavItems : shouldShowCustomerNav ? customerNavItems : []).map((item) => (
-              <div key={item.href}>
-                {item.isUserGreeting ? (
-                  <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    {item.label}
-                  </span>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className={`text-lg font-semibold transition-all duration-300 hover:text-orange-600 hover:scale-105 ${
-                      pathname === item.href
-                        ? 'text-orange-600 border-b-2 border-orange-600'
-                        : 'text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                )}
-              </div>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-lg font-semibold transition-all duration-300 hover:text-orange-600 hover:scale-105 ${
+                  pathname === item.href
+                    ? 'text-orange-600 border-b-2 border-orange-600'
+                    : 'text-gray-700 dark:text-gray-300'
+                }`}
+              >
+                {item.label}
+              </Link>
             ))}
 
+            {/* User Greeting and Auth Actions */}
+            {isLoggedIn ? (
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 px-3 py-2 bg-orange-50 dark:bg-orange-900/20 rounded-full">
+                  <User className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  <span className="text-lg font-semibold text-orange-700 dark:text-orange-300">
+                    Hi, {userName}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-lg font-semibold text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1 transition-colors px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  <LogOut className="w-5 h-5" /> Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="text-lg font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Login
+              </Link>
+            )}
             {/* Show cart only for customers */}
             {shouldShowCustomerNav && !isOwner && (
               <Link href="/checkout" className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-orange-600">
@@ -138,15 +151,6 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Logout button for logged in users */}
-            {isLoggedIn && (
-              <button
-                onClick={handleLogout}
-                className="text-lg font-semibold text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1 transition-colors"
-              >
-                <LogOut className="w-5 h-5" /> Logout
-              </button>
-            )}
 
             {/* Dark mode toggle */}
             <button
@@ -192,35 +196,44 @@ export default function Header() {
           <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
             <div className="flex flex-col space-y-4">
               {(shouldShowOwnerNav ? ownerNavItems : shouldShowCustomerNav ? customerNavItems : []).map((item) => (
-                <div key={item.href}>
-                  {item.isUserGreeting ? (
-                    <span className="block px-4 py-2 text-lg font-semibold text-gray-700 dark:text-gray-300">
-                      {item.label}
-                    </span>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`block px-4 py-2 text-lg font-semibold transition-colors ${
-                        pathname === item.href
-                          ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/20'
-                          : 'text-gray-700 dark:text-gray-300 hover:text-orange-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  )}
-                </div>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-4 py-2 text-lg font-semibold transition-colors ${
+                    pathname === item.href
+                      ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/20'
+                      : 'text-gray-700 dark:text-gray-300 hover:text-orange-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {item.label}
+                </Link>
               ))}
 
-              {isLoggedIn && (
-                <button
-                  onClick={handleLogout}
-                  className="text-left px-4 py-2 text-lg font-semibold text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              {/* Mobile User Greeting and Auth Actions */}
+              {isLoggedIn ? (
+                <>
+                  <div className="px-4 py-2 flex items-center space-x-2 bg-orange-50 dark:bg-orange-900/20 mx-4 rounded-lg">
+                    <User className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    <span className="text-lg font-semibold text-orange-700 dark:text-orange-300">
+                      Hi, {userName}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="text-left px-4 py-2 text-lg font-semibold text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" /> Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="mx-4 text-center bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-300"
                 >
-                  <LogOut className="w-5 h-5" /> Logout
-                </button>
-              )}
+                  Login
+                </Link>
             </div>
           </div>
         )}

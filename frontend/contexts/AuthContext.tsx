@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,8 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshAuth = async () => {
+    await checkAuth();
+  };
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      setIsLoading(true);
       const response = await fetch('http://localhost:5555/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -106,11 +111,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       toast.error('Server error. Please try again later.');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem('access_token');
       if (token) {
         await fetch('http://localhost:5555/logout', {
@@ -129,6 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('user');
       localStorage.removeItem('foodCourtCart');
       setUser(null);
+      setIsLoading(false);
       
       toast.success('Logged out successfully!');
       router.push('/');
@@ -139,13 +148,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, []);
 
+  // Listen for storage changes (for multi-tab sync)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'access_token' || e.key === 'user') {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   const value = {
     user,
     isLoggedIn: !!user,
     isLoading,
     login,
     logout,
-    checkAuth
+    checkAuth,
+    refreshAuth
   };
 
   return (

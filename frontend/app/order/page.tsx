@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import AuthGuard from '@/components/AuthGuard';
 
 interface OrderItem {
   dishId: string;
@@ -29,8 +30,7 @@ interface Restaurant {
   menu_items?: MenuItem[];
 }
 export default function Order() {
-  const { isLoggedIn, user, isLoading } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const outletId = searchParams.get('outlet'); 
   
@@ -43,13 +43,6 @@ export default function Order() {
   
   const selectedRestaurant = restaurants.find(r => r.id.toString() === selectedOutlet);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isLoggedIn) {
-      toast.error('Please log in to place an order');
-      router.push('/login');
-    }
-  }, [isLoggedIn, isLoading, router]);
 
   // Fetch restaurants and menu items
   useEffect(() => {
@@ -71,10 +64,8 @@ export default function Order() {
       }
     };
 
-    if (isLoggedIn) {
-      fetchData();
-    }
-  }, [isLoggedIn]);
+    fetchData();
+  }, []);
 
   // Get menu items for selected restaurant
   const restaurantMenuItems = selectedRestaurant 
@@ -143,7 +134,6 @@ export default function Order() {
 
     if (!user?.id) {
       toast.error('User information not found. Please log in again.');
-      router.push('/login');
       return;
     }
 
@@ -196,9 +186,6 @@ export default function Order() {
       setOrderItems([]);
       
       // Redirect to a success page or orders page
-      setTimeout(() => {
-        router.push('/');
-      }, 2000);
 
     } catch (error) {
       console.error('Failed to submit order:', error);
@@ -208,21 +195,9 @@ export default function Order() {
     }
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  }
-
-  // Don't render if not logged in (will redirect)
-  if (!isLoggedIn) {
-    return null;
-  }
 
   return (
+    <AuthGuard requireAuth={true}>
     <div>
       
       <div className="mb-8">
@@ -388,5 +363,6 @@ export default function Order() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

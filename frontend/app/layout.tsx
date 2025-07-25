@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -14,6 +15,38 @@ export const metadata: Metadata = {
   description: 'Reserve tables and order food in advance at our shared seating food court',
 };
 
+function ClientLayout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Initialize dark mode from localStorage
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode === 'true') {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  return (
+    <>
+      <Header />
+      <main className="max-w-7xl mx-auto px-6 py-12 text-gray-900 dark:text-white">
+        {children}
+      </main>
+      <Footer />
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        toastClassName="text-sm"
+      />
+    </>
+  );
+}
 export default function RootLayout({
   children,
 }: {
@@ -23,22 +56,7 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className={`${inter.className} bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300`}>
         <AuthProvider>
-          <Header />
-          <main className="max-w-7xl mx-auto px-6 py-12 text-gray-900 dark:text-white">
-            {children}
-          </main>
-          <Footer />
-          <ToastContainer 
-            position="top-right" 
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
+          <ClientLayout>{children}</ClientLayout>
         </AuthProvider>
       </body>
     </html>

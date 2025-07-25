@@ -3,9 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Login() {
   const { login, isLoading } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/';
   
   const [formData, setFormData] = useState({
     email: "",
@@ -20,7 +24,13 @@ export default function Login() {
       return;
     }
 
-    await login(email, password);
+    const success = await login(email, password);
+    if (success) {
+      // Redirect to the intended page or home
+      setTimeout(() => {
+        router.push(redirectTo);
+      }, 1500);
+    }
   };
 
   return (
@@ -30,6 +40,11 @@ export default function Login() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Sign in to your account to continue</p>
+          {redirectTo !== '/' && (
+            <p className="text-sm text-orange-600 mt-2 bg-orange-50 p-2 rounded">
+              Please log in to access this feature
+            </p>
+          )}
         </div>
 
         

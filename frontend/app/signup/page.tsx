@@ -4,11 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 export default function Signup() {
 
    const router = useRouter();
+   const { refreshAuth } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -65,6 +67,28 @@ export default function Signup() {
 
     if (res.ok) {
       toast.success('Registered successfully!');
+      
+      // Auto-login after successful registration
+      try {
+        const loginRes = await fetch('http://localhost:5555/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const loginData = await loginRes.json();
+        
+        if (loginRes.ok) {
+          localStorage.setItem('access_token', loginData.access_token);
+          localStorage.setItem('user', JSON.stringify(loginData.user));
+          await refreshAuth();
+          
+          toast.success('Welcome! You are now logged in.');
+        }
+      } catch (loginError) {
+        console.error('Auto-login failed:', loginError);
+      }
+      
       setTimeout(() => {
         if (userType === 'owner') {
           router.push('/owner-dashboard');
