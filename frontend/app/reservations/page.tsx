@@ -24,12 +24,6 @@ interface Reservation {
   created_at: string;
 }
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
 interface FormData {
   customerName: string;
   selectedTable: string;
@@ -52,8 +46,6 @@ export default function Reservations() {
     time: '',
     guestCount: 1
   });
-
-
 
   useEffect(() => {
     if (!user) return;

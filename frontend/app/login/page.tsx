@@ -26,10 +26,13 @@ export default function Login() {
 
     const success = await login(email, password);
     if (success) {
-      // Redirect to the intended page or home
-      setTimeout(() => {
+      // Redirect based on user role or intended page
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.role === 'owner') {
+        router.push('/owner-dashboard');
+      } else {
         router.push(redirectTo);
-      }, 1500);
+      }
     }
   };
 

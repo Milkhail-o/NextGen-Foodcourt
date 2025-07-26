@@ -29,6 +29,7 @@ interface Restaurant {
   description: string;
   menu_items?: MenuItem[];
 }
+
 export default function Order() {
   const { user } = useAuth();
   const searchParams = useSearchParams();

@@ -6,7 +6,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,14 +15,6 @@ export const metadata: Metadata = {
 };
 
 function ClientLayout({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    // Initialize dark mode from localStorage
-    const savedDarkMode = localStorage.getItem('darkMode');
-    if (savedDarkMode === 'true') {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
   return (
     <>
       <Header />

@@ -36,6 +36,7 @@ export default function Home() {
       router.push('/login');
     }
   };
+
   useEffect(() => {
     const fetchData = async () => {
       try {

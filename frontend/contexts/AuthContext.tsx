@@ -75,6 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshAuth = async () => {
     await checkAuth();
   };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
@@ -93,15 +94,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(data.user);
         
         toast.success('Login successful!');
-        
-        // Redirect based on user role
-        setTimeout(() => {
-          if (data.user.role === 'owner') {
-            router.push('/owner-dashboard');
-          } else {
-            router.push('/');
-          }
-        }, 1000);
         
         return true;
       } else {

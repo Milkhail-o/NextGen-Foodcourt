@@ -95,7 +95,7 @@ export default function Signup() {
         } else {
           router.push('/');
         }
-      }, 2000);
+      }, 1500);
     } else {
       toast.error(data.message || 'Registration failed. Try again.');
     }
